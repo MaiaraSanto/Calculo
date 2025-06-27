@@ -1,105 +1,118 @@
-// Carregar usuários do localStorage
+// Funções básicas
 const loadUsers = () => JSON.parse(localStorage.getItem('users') || '[]');
-
-// Salvar usuários no localStorage
 const saveUsers = (users) => localStorage.setItem('users', JSON.stringify(users));
+const showSection = (id) => {
+  document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+};
+const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// Mostrar uma seção e ocultar outras
-function showSection(sectionId) {
-  document.querySelectorAll('.form-section').forEach(section => {
-    section.classList.remove('active');
-  });
-  document.getElementById(sectionId).classList.add('active');
-}
-
-// Gerar ID único
-function generateId() {
-  return Math.random().toString(36).substring(2, 10);
-}
-
-// Validação de senha forte (mínimo 8 caracteres)
-function isValidPassword(password) {
-  return password.length >= 8;
-}
-
-// Registro de usuário
+// Cadastro
 document.getElementById('register-form').addEventListener('submit', function(e) {
   e.preventDefault();
   const formData = new FormData(this);
-  const user = {
-    id: generateId(),
-    name: formData.get('name'),
-    email: formData.get('email'),
-    login: formData.get('login'),
-    password: formData.get('password'),
-    role: formData.get('role'),
-    isFirstAccess: true
-  };
-
-  const confirmPassword = formData.get('confirmPassword');
-  
-  if (user.password !== confirmPassword) {
-    alert('As senhas não coincidem.');
-    return;
-  }
-
-  const users = loadUsers();
-  users.push(user);
-  saveUsers(users);
-  alert('Usuário cadastrado com sucesso!');
-  this.reset();
-  showSection('login-screen');
-});
-
-// Login
-document.getElementById('login-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const formData = new FormData(this);
+  const name = formData.get('name');
+  const email = formData.get('email');
   const login = formData.get('login');
   const password = formData.get('password');
-  const users = loadUsers();
-  const user = users.find(u => u.login === login && u.password === password);
+  const confirmPassword = formData.get('confirmPassword');
+  const role = formData.get('role');
 
-  if (!user) {
-    alert('Credenciais inválidas');
+  if (!role) {
+    alert('Selecione um cargo.');
     return;
   }
 
-  if (user.isFirstAccess) {
-    // Armazenar login temporário para alteração
-    localStorage.setItem('pendingUser', login);
+  if (password !== confirmPassword) {
+    alert('Senhas não coincidem.');
+    return;
+  }
+
+  const users = loadUsers();
+  if (users.some(u => u.login === login)) {
+    alert('Este login já existe.');
+    return;
+  }
+
+  const user = { id: generateId(), name, email, login, password, role, isFirstAccess: true };
+  users.push(user);
+  saveUsers(users);
+
+  // Salva quem está aguardando o link de ativação
+  localStorage.setItem('pendingActivation', JSON.stringify({ login, password }));
+
+  // Mostra mensagem de email enviado com um link de simulação
+  document.getElementById('email-verification-screen').querySelector('.info-text').innerHTML = `
+    Cadastro feito com sucesso! Um link foi enviado para seu e-mail.<br><br>
+    <a href="?activate=true">👉 Clique aqui para simular o link do e-mail</a>
+  `;
+
+  showSection('email-verification-screen');
+});
+
+// Se a URL tiver o parâmetro ?activate=true
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('activate') === 'true') {
     showSection('change-credentials-screen');
-  } else {
-    alert('Bem-vindo ao sistema!');
   }
 });
 
-// Alteração de credenciais
+// Alteração de Credenciais - Confirma o login e a senha da primeira tela
 document.getElementById('change-credentials-form').addEventListener('submit', function(e) {
   e.preventDefault();
   const formData = new FormData(this);
   const newLogin = formData.get('newLogin');
   const newPassword = formData.get('newPassword');
   const confirmNewPassword = formData.get('confirmNewPassword');
-  const pendingLogin = localStorage.getItem('pendingUser');
-  
+
   if (newPassword !== confirmNewPassword) {
     alert('As novas senhas não coincidem.');
     return;
   }
 
+  const pending = JSON.parse(localStorage.getItem('pendingActivation'));
+  if (!pending) {
+    alert('Erro: Nenhum cadastro aguardando ativação.');
+    showSection('register-screen');
+    return;
+  }
+
+  // O usuário precisa digitar os mesmos login e senha da primeira tela
+  if (newLogin !== pending.login || newPassword !== pending.password) {
+    alert('Login ou senha incorretos. Precisa ser o mesmo que foi cadastrado.');
+    return;
+  }
+
   const users = loadUsers();
-  const userIndex = users.findIndex(u => u.login === pendingLogin);
-  
-  if (userIndex === -1) return;
+  const index = users.findIndex(u => u.login === pending.login && u.password === pending.password);
 
-  users[userIndex].login = newLogin;
-  users[userIndex].password = newPassword;
-  users[userIndex].isFirstAccess = false;
+  if (index === -1) {
+    alert('Usuário não encontrado.');
+    return;
+  }
 
+  users[index].isFirstAccess = false;
   saveUsers(users);
-  localStorage.removeItem('pendingUser');
-  alert('Credenciais atualizadas com sucesso!');
-  this.reset();
+  localStorage.removeItem('pendingActivation');
+
+  alert('Alteração validada! Agora faça o login.');
   showSection('login-screen');
+});
+
+// Login Final
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const login = formData.get('login');
+  const password = formData.get('password');
+  const users = loadUsers();
+  const user = users.find(u => u.login === login && u.password === password && !u.isFirstAccess);
+
+  if (!user) {
+    alert('Login ou senha inválidos, ou você ainda não ativou seu cadastro.');
+    return;
+  }
+
+  alert('Login bem-sucedido. Bem-vindo ao sistema!');
 });
