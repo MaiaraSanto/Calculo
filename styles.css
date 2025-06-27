@@ -10,19 +10,39 @@ body {
   background: linear-gradient(135deg, #f0f8ff, #e0f0ff);
   color: #333;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   padding: 20px;
+  display: flex;
 }
 
+.main-container {
+  display: flex;
+  max-width: 600px;
+  width: 200%;
+  justify-content: center;
+}
+
+.image-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 12px;
+}
+
+.image-container img.imagem {
+  max-width: 80%;
+  height: auto;
+}
 .container {
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Header */
@@ -31,11 +51,12 @@ body {
   padding: 20px;
   background: #068BBF;
   color: white;
+
 }
 
 .logo {
-  width: 60px;
-  height: 60px;
+  width: 100px;
+  height: 100px;
   margin-bottom: 10px;
 }
 
@@ -48,6 +69,12 @@ body {
 .form-section {
   display: none;
   padding: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1)
 }
 
 .form-section.active {
@@ -58,6 +85,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  margin-bottom: 15px;
 }
 
 .form-title {
@@ -71,6 +99,21 @@ body {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  
+}
+
+.auth-form input,
+.auth-form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.auth-form select {
+  background-color: #fff;
+  cursor: pointer;
 }
 
 input[type="text"],
@@ -97,6 +140,7 @@ input:focus {
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s;
+  font-size: 16px;
 }
 
 .btn-primary:hover {
@@ -118,3 +162,68 @@ input:focus {
   text-align: center;
   margin-bottom: 15px;
 }
+
+
+
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .main-container {
+    flex-direction: column;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .image-container {
+    order: -1;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .image-container img.imagem {
+    max-width: 60%;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .container {
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .form-section {
+    max-width: 100%;
+    box-shadow: none;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .image-container img.imagem {
+    max-width: 80%;
+  }
+
+  .btn-primary {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .form-title {
+    font-size: 18px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select {
+    font-size: 13px;
+    padding: 8px;
+  }
+}
+
